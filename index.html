@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>NERC Standards & RSAW Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f7fb;
+      color: #111827;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: #f5f7fb;
+    }
+
+    header {
+      background: #111827;
+      color: #f9fafb;
+      padding: 1rem 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.35rem;
+    }
+
+    header p {
+      margin: 0.25rem 0 0;
+      font-size: 0.9rem;
+      opacity: 0.85;
+    }
+
+    main {
+      padding: 1.5rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .top-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .top-row .info {
+      font-size: 0.85rem;
+      color: #4b5563;
+    }
+
+    .top-row a.button-link {
+      text-decoration: none;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      font-size: 0.85rem;
+      background: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      cursor: pointer;
+    }
+
+    .top-row a.button-link span.icon {
+      font-size: 1rem;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+      gap: 1rem;
+      align-items: flex-start;
+    }
+
+    /* Standards buttons column */
+    .standards-panel {
+      background: #ffffff;
+      border-radius: 0.9rem;
+      padding: 0.75rem;
+      box-shadow: 0 1px 6px rgba(15,23,42,0.08);
+      border: 1px solid #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .standards-panel h2 {
+      margin: 0 0 0.5rem;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6b7280;
+    }
+
+    .search-box {
+      margin-bottom: 0.5rem;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 0.35rem 0.45rem;
+      font-size: 0.85rem;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+    }
+
+    .standard-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      max-height: 460px;
+      overflow-y: auto;
+      padding-right: 0.15rem;
+    }
+
+    .standard-button {
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      background: #f9fafb;
+      padding: 0.4rem 0.6rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-size: 0.8rem;
+      text-align: left;
+    }
+
+    .standard-button:hover {
+      background: #eef2ff;
+      border-color: #6366f1;
+    }
+
+    .standard-button.active {
+      background: #4f46e5;
+      border-color: #312e81;
+      color: #f9fafb;
+    }
+
+    .standard-button-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 0.5rem;
+    }
+
+    .standard-button-id {
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
+    .standard-button-family {
+      font-size: 0.75rem;
+      padding: 0.05rem 0.45rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.4);
+      background: rgba(15,23,42,0.1);
+    }
+
+    .standard-button-title {
+      font-size: 0.75rem;
+      opacity: 0.9;
+    }
+
+    .standard-button-rsaw {
+      font-size: 0.75rem;
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .badge {
+      border-radius: 999px;
+      padding: 0.05rem 0.45rem;
+      font-size: 0.7rem;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      color: #4b5563;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .badge-rsaw-warning {
+      background: #fef9c3;
+      border-color: #eab308;
+      color: #854d0e;
+    }
+
+    .badge-rsaw-overdue {
+      background: #fee2e2;
+      border-color: #ef4444;
+      color: #991b1b;
+    }
+
+    .badge-status-pending {
+      background: #fff7ed;
+      border-color: #fdba74;
+      color: #9a3412;
+    }
+
+    .badge-status-retired {
+      background: #e5e7eb;
+      border-color: #d1d5db;
+      color: #4b5563;
+    }
+
+    .badge-status-active {
+      background: #dcfce7;
+      border-color: #22c55e;
+      color: #166534;
+    }
+
+    /* Detail panel */
+    .detail-panel {
+      background: #ffffff;
+      border-radius: 0.9rem;
+      padding: 1rem;
+      box-shadow: 0 1px 6px rgba(15,23,42,0.08);
+      border: 1px solid #e5e7eb;
+      min-height: 260px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .detail-header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 0.75rem;
+      align-items: baseline;
+      justify-content: space-between;
+    }
+
+    .detail-header-main {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .detail-id {
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+
+    .detail-title {
+      font-size: 0.9rem;
+      color: #4b5563;
+    }
+
+    .detail-meta-row {
+      font-size: 0.8rem;
+      color: #6b7280;
+    }
+
+    .detail-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      gap: 1rem;
+      font-size: 0.85rem;
+    }
+
+    .meta-block h3,
+    .requirements-block h3 {
+      margin: 0 0 0.4rem;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6b7280;
+    }
+
+    .meta-table {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      row-gap: 0.25rem;
+      column-gap: 0.75rem;
+      font-size: 0.82rem;
+    }
+
+    .meta-label {
+      color: #6b7280;
+    }
+
+    .meta-value {
+      font-weight: 500;
+      text-align: right;
+    }
+
+    .meta-notes {
+      margin-top: 0.4rem;
+      font-size: 0.82rem;
+      color: #4b5563;
+    }
+
+    .requirements-block {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    details.req {
+      border-radius: 0.6rem;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      padding: 0.45rem 0.55rem;
+    }
+
+    details.req summary {
+      list-style: none;
+      cursor: pointer;
+    }
+
+    details.req summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .req-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+    }
+
+    .req-id {
+      font-weight: 600;
+    }
+
+    .req-testing {
+      font-size: 0.75rem;
+      color: #4b5563;
+      text-align: right;
+    }
+
+    .req-body {
+      margin-top: 0.4rem;
+      font-size: 0.8rem;
+      color: #374151;
+    }
+
+    .req-body p {
+      margin: 0 0 0.25rem;
+    }
+
+    .rsaw-alert-banner {
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
+      padding: 0.45rem 0.55rem;
+      border-radius: 0.6rem;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      border: 1px solid #facc15;
+      background: #fef9c3;
+      color: #854d0e;
+    }
+
+    .rsaw-alert-banner.overdue {
+      border-color: #ef4444;
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .rsaw-alert-banner span.icon {
+      font-size: 1rem;
+    }
+
+    .rsaw-summary-strip {
+      margin: 1rem 0;
+      background: #ecfeff;
+      border: 1px solid #67e8f9;
+      border-radius: 0.75rem;
+      padding: 0.45rem 0.6rem;
+      font-size: 0.8rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      color: #155e75;
+    }
+
+    .rsaw-summary-strip strong {
+      font-weight: 600;
+    }
+
+    footer {
+      margin-top: 2rem;
+      font-size: 0.75rem;
+      color: #9ca3af;
+      text-align: center;
+      padding-bottom: 2rem;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      header h1 {
+        font-size: 1.1rem;
+      }
+      .detail-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>NERC Standards, Testing & RSAW Tracker</h1>
+  <p>Quick view for our NERC team: what applies, what changed, when testing is due, and which RSAWs are coming up.</p>
+</header>
+
+<main>
+  <section class="top-row">
+    <div class="info">
+      This page is public to our NERC team (no login). Select a standard on the left to see requirements, testing,
+      and RSAW status.
+    </div>
+    <a
+      class="button-link"
+      href="https://github.com/MCPBPUNERC/nerc-one-stop-shop-tracker"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <span class="icon">📊</span>
+      <span>View NERC change bot repo</span>
+    </a>
+  </section>
+
+  <!-- RSAW summary strip (populated by JS) -->
+  <section id="rsawSummaryStrip" class="rsaw-summary-strip" style="display:none;"></section>
+
+  <section class="layout">
+    <!-- LEFT: Standards buttons -->
+    <aside class="standards-panel">
+      <h2>Standards</h2>
+
+      <div class="search-box">
+        <input id="searchInput" type="search" placeholder="Search by ID or title..." />
+      </div>
+
+      <div id="standardButtons" class="standard-buttons"></div>
+    </aside>
+
+    <!-- RIGHT: Detail panel -->
+    <section class="detail-panel" id="detailPanel">
+      <div id="noSelection">
+        <p style="font-size:0.9rem; color:#6b7280;">
+          Select a standard on the left to view details, testing requirements, and RSAW status.
+        </p>
+      </div>
+      <div id="detailContent" style="display:none;"></div>
+    </section>
+  </section>
+
+  <footer>
+    Data source: NERC One Stop Shop & internal NERC program tracking. This page does not replace the RSAWs or the NERC
+    standards — it is a convenience view for our team.
+  </footer>
+</main>
+
+<script>
+  // ============================================================
+  // 1. DATA MODEL
+  //    Replace this with your real standards list when ready.
+  //    Add/remove properties as needed.
+  // ============================================================
+  const standards = [
+    {
+      id: "CIP-002-5.1a",
+      family: "CIP",
+      title: "Cyber Security — BES Cyber System Categorization",
+      status: "In Force", // In Force | Pending | Retired
+      owner: "NERC Compliance",
+      effectiveDate: "Jul 1, 2016",
+      lastChangeDate: "Jan 15, 2025",
+      lastProgramReview: "Dec 1, 2024",
+      lastTestDate: "Mar 1, 2025",
+      nextTestDue: "Mar 1, 2026",
+      rsawName: "CIP-002-5.1a RSAW",
+      rsawDueDate: "Feb 1, 2026",
+      rsawStatus: "Planned", // Planned | Drafted | Submitted | Accepted
+      changeLogUrl: "https://github.com/MCPBPUNERC/nerc-one-stop-shop-tracker/tree/main/reports/CIP-002",
+      notes: "Applies to BES Cyber Systems at the control center and generation plant.",
+      requirements: [
+        {
+          id: "R1",
+          text: "Maintain a documented process to identify and categorize BES Cyber Systems and their associated BES Cyber Assets.",
+          testFrequency: "Annual",
+          testMethod: "Review asset inventory, categorization worksheet, and approvals.",
+          lastTestDate: "Mar 1, 2025",
+          nextTestDue: "Mar 1, 2026"
+        },
+        {
+          id: "R2",
+          text: "Review and update the BES Cyber System categorization when system changes occur or at least once every 15 months.",
+          testFrequency: "Every 15 months",
+          testMethod: "Evidence of change reviews and periodic re-categorization meeting minutes.",
+          lastTestDate: "Feb 10, 2025",
+          nextTestDue: "May 10, 2026"
+        }
+      ]
+    },
+    {
+      id: "PRC-005-6",
+      family: "PRC",
+      title: "Protection System, Automatic Reclosing, and Sudden Pressure Relaying Maintenance",
+      status: "In Force",
+      owner: "Relay/Protection",
+      effectiveDate: "Jan 1, 2023",
+      lastChangeDate: "Oct 1, 2024",
+      lastProgramReview: "Sep 30, 2024",
+      lastTestDate: "Aug 15, 2025",
+      nextTestDue: "Aug 15, 2028",
+      rsawName: "PRC-005-6 RSAW",
+      rsawDueDate: "Jul 1, 2027",
+      rsawStatus: "Drafted",
+      changeLogUrl: "https://github.com/MCPBPUNERC/nerc-one-stop-shop-tracker/tree/main/reports/PRC-005",
+      notes: "Covers maintenance/testing for protection systems for transmission and generation assets.",
+      requirements: [
+        {
+          id: "R1",
+          text: "Establish a Protection System Maintenance Program (PSMP) that identifies components and associated intervals.",
+          testFrequency: "Every 3 years (program review)",
+          testMethod: "Review PSMP document and confirm scope & intervals match applicable assets.",
+          lastTestDate: "Aug 15, 2025",
+          nextTestDue: "Aug 15, 2028"
+        },
+        {
+          id: "R2",
+          text: "Perform maintenance and testing within the defined intervals and retain evidence.",
+          testFrequency: "Per component interval",
+          testMethod: "Sampling of work orders and maintenance records from CMMS.",
+          lastTestDate: "Aug 15, 2025",
+          nextTestDue: "Aug 15, 2028"
+        }
+      ]
+    },
+    {
+      id: "FAC-008-5",
+      family: "FAC",
+      title: "Facility Ratings",
+      status: "In Force",
+      owner: "Transmission/Engineering",
+      effectiveDate: "Oct 1, 2024",
+      lastChangeDate: "Oct 1, 2024",
+      lastProgramReview: "Sep 30, 2024",
+      lastTestDate: "Jun 1, 2025",
+      nextTestDue: "Jun 1, 2028",
+      rsawName: "FAC-008-5 RSAW",
+      rsawDueDate: "Mar 1, 2028",
+      rsawStatus: "Planned",
+      changeLogUrl: "https://github.com/MCPBPUNERC/nerc-one-stop-shop-tracker/tree/main/reports/FAC-008",
+      notes: "Applies to facility ratings for lines, transformers, and other applicable facilities.",
+      requirements: [
+        {
+          id: "R1",
+          text: "Have Facility Ratings based on technically sound methods consistent with documented methodology.",
+          testFrequency: "Every 3 years",
+          testMethod: "Review rating methodology, line rating spreadsheets, and approvals.",
+          lastTestDate: "Jun 1, 2025",
+          nextTestDue: "Jun 1, 2028"
+        }
+      ]
+    }
+  ];
+
+  // ============================================================
+  // 2. DATE HELPERS (for RSAW warning logic)
+  // ============================================================
+  function parseDate(str) {
+    if (!str) return null;
+    // Expect format like "Feb 1, 2026" or "2026-02-01"
+    return new Date(str);
+  }
+
+  function daysUntil(dateStr) {
+    const d = parseDate(dateStr);
+    if (!d || isNaN(d)) return null;
+    const today = new Date();
+    const diffMs = d.setHours(0,0,0,0) - today.setHours(0,0,0,0);
+    return Math.round(diffMs / (1000 * 60 * 60 * 24));
+  }
+
+  function getRsawBadgeClass(days) {
+    if (days === null) return "";
+    if (days < 0) return "badge-rsaw-overdue";
+    if (days <= 90) return "badge-rsaw-warning";
+    return "";
+  }
+
+  function getStatusBadgeClass(status) {
+    if (!status) return "";
+    const s = status.toLowerCase();
+    if (s.includes("retired")) return "badge-status-retired";
+    if (s.includes("pending")) return "badge-status-pending";
+    return "badge-status-active";
+  }
+
+  // ============================================================
+  // 3. BUILD RSAW SUMMARY STRIP
+  // ============================================================
+  const rsawSummaryStrip = document.getElementById("rsawSummaryStrip");
+
+  function buildRsawSummary() {
+    const today = new Date();
+    const upcoming = [];
+    const overdue = [];
+
+    standards.forEach(s => {
+      if (!s.rsawDueDate) return;
+      const days = daysUntil(s.rsawDueDate);
+      if (days === null) return;
+
+      const item = {
+        id: s.id,
+        rsawName: s.rsawName,
+        rsawDueDate: s.rsawDueDate,
+        rsawStatus: s.rsawStatus,
+        days
+      };
+
+      if (days < 0) overdue.push(item);
+      else if (days <= 120) upcoming.push(item); // 120-day forward look
+    });
+
+    if (!upcoming.length && !overdue.length) {
+      rsawSummaryStrip.style.display = "none";
+      return;
+    }
+
+    rsawSummaryStrip.style.display = "flex";
+    const pieces = [];
+
+    if (overdue.length) {
+      const text = overdue
+        .sort((a,b) => a.days - b.days)
+        .map(i => `${i.id} (${i.rsawDueDate})`)
+        .join(", ");
+      pieces.push(`<strong>Overdue RSAWs:</strong> ${text}`);
+    }
+
+    if (upcoming.length) {
+      const text = upcoming
+        .sort((a,b) => a.days - b.days)
+        .map(i => `${i.id} (${i.rsawDueDate}, ~${i.days} days)`)
+        .join("; ");
+      pieces.push(`<strong>RSAWs due within 120 days:</strong> ${text}`);
+    }
+
+    rsawSummaryStrip.innerHTML = pieces.join(" &nbsp;|&nbsp; ");
+  }
+
+  // ============================================================
+  // 4. BUILD STANDARDS BUTTONS
+  // ============================================================
+  const buttonsContainer = document.getElementById("standardButtons");
+  const searchInput = document.getElementById("searchInput");
+  const detailPanel = document.getElementById("detailPanel");
+  const detailContent = document.getElementById("detailContent");
+  const noSelection = document.getElementById("noSelection");
+
+  let activeStandardId = null;
+
+  function renderStandardButtons() {
+    const search = (searchInput.value || "").trim().toLowerCase();
+    buttonsContainer.innerHTML = "";
+
+    const filtered = standards.filter(s => {
+      const target = (s.id + " " + (s.title || "")).toLowerCase();
+      return !search || target.includes(search);
+    });
+
+    filtered.forEach(s => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "standard-button" + (s.id === activeStandardId ? " active" : "");
+      btn.dataset.id = s.id;
+
+      const top = document.createElement("div");
+      top.className = "standard-button-top";
+
+      const idSpan = document.createElement("span");
+      idSpan.className = "standard-button-id";
+      idSpan.textContent = s.id;
+
+      const familySpan = document.createElement("span");
+      familySpan.className = "standard-button-family";
+      familySpan.textContent = s.family;
+
+      top.appendChild(idSpan);
+      top.appendChild(familySpan);
+
+      const titleSpan = document.createElement("div");
+      titleSpan.className = "standard-button-title";
+      titleSpan.textContent = s.title || "";
+
+      const rsawRow = document.createElement("div");
+      rsawRow.className = "standard-button-rsaw";
+
+      const statusBadge = document.createElement("span");
+      statusBadge.className = "badge " + getStatusBadgeClass(s.status);
+      statusBadge.textContent = s.status || "Status N/A";
+
+      const rsawBadge = document.createElement("span");
+      const days = daysUntil(s.rsawDueDate);
+      const rsawClass = getRsawBadgeClass(days);
+      rsawBadge.className = "badge " + rsawClass;
+
+      if (s.rsawDueDate) {
+        if (days === null) {
+          rsawBadge.textContent = "RSAW: " + s.rsawDueDate;
+        } else if (days < 0) {
+          rsawBadge.textContent = `RSAW overdue (${s.rsawDueDate})`;
+        } else {
+          rsawBadge.textContent = `RSAW due ${s.rsawDueDate}`;
+        }
+      } else {
+        rsawBadge.textContent = "RSAW: N/A";
+      }
+
+      rsawRow.appendChild(statusBadge);
+      rsawRow.appendChild(rsawBadge);
+
+      btn.appendChild(top);
+      btn.appendChild(titleSpan);
+      btn.appendChild(rsawRow);
+
+      btn.addEventListener("click", () => {
+        activeStandardId = s.id;
+        renderStandardButtons();
+        showStandardDetail(s.id);
+      });
+
+      buttonsContainer.appendChild(btn);
+    });
+
+    if (!filtered.length) {
+      const p = document.createElement("p");
+      p.style.fontSize = "0.8rem";
+      p.style.color = "#6b7280";
+      p.textContent = "No standards match your search.";
+      buttonsContainer.appendChild(p);
+    }
+  }
+
+  // ============================================================
+  // 5. DETAIL PANEL (DROPDOWNS FOR REQUIREMENTS)
+  // ============================================================
+  function showStandardDetail(id) {
+    const s = standards.find(x => x.id === id);
+    if (!s) return;
+
+    noSelection.style.display = "none";
+    detailContent.style.display = "block";
+
+    const days = daysUntil(s.rsawDueDate);
+    const isOverdue = days !== null && days < 0;
+    const showWarning = days !== null && (days <= 120 || isOverdue);
+
+    let rsawBannerHtml = "";
+    if (s.rsawName && s.rsawDueDate && showWarning) {
+      rsawBannerHtml = `
+        <div class="rsaw-alert-banner ${isOverdue ? "overdue" : ""}">
+          <span class="icon">⚠️</span>
+          <div>
+            <strong>${s.rsawName}</strong> is
+            ${isOverdue ? "overdue" : "coming due"} on <strong>${s.rsawDueDate}</strong>
+            (status: <strong>${s.rsawStatus || "N/A"}</strong>).
+            Please ensure the RSAW is updated and ready for submission.
+          </div>
+        </div>
+      `;
+    }
+
+    // Build requirements dropdowns
+    const reqHtml = (s.requirements || [])
+      .map(r => {
+        return `
+          <details class="req">
+            <summary>
+              <div class="req-header">
+                <span class="req-id">${r.id}</span>
+                <span class="req-testing">
+                  ${r.testFrequency || ""}${r.testFrequency && (r.nextTestDue || r.lastTestDate) ? " • " : ""}
+                  ${r.nextTestDue ? "Next test: " + r.nextTestDue : ""}
+                </span>
+              </div>
+            </summary>
+            <div class="req-body">
+              <p>${r.text || ""}</p>
+              ${r.testMethod ? `<p><strong>Test method:</strong> ${r.testMethod}</p>` : ""}
+              ${(r.lastTestDate || r.nextTestDue) ? `
+                <p>
+                  ${r.lastTestDate ? `<strong>Last test:</strong> ${r.lastTestDate}` : ""}
+                  ${r.lastTestDate && r.nextTestDue ? " • " : ""}
+                  ${r.nextTestDue ? `<strong>Next due:</strong> ${r.nextTestDue}` : ""}
+                </p>
+              ` : ""}
+            </div>
+          </details>
+        `;
+      })
+      .join("") || `<p style="font-size:0.8rem; color:#6b7280;">No requirements loaded yet.</p>`;
+
+    detailContent.innerHTML = `
+      <div class="detail-header">
+        <div class="detail-header-main">
+          <div class="detail-id">${s.id}</div>
+          <div class="detail-title">${s.title || ""}</div>
+          <div class="detail-meta-row">
+            Family: ${s.family} &nbsp;•&nbsp; Owner: ${s.owner || "N/A"}
+          </div>
+        </div>
+        <div class="detail-badges">
+          <span class="badge ${getStatusBadgeClass(s.status)}">${s.status || "Status N/A"}</span>
+          ${
+            s.rsawName
+              ? `<span class="badge">RSAW: ${s.rsawName}</span>`
+              : ""
+          }
+        </div>
+      </div>
+
+      ${rsawBannerHtml}
+
+      <div class="detail-grid">
+        <div class="requirements-block">
+          <h3>Requirements & Testing</h3>
+          ${reqHtml}
+        </div>
+
+        <div class="meta-block">
+          <h3>Meta & Links</h3>
+          <div class="meta-table">
+            <div class="meta-label">Effective date</div>
+            <div class="meta-value">${s.effectiveDate || "N/A"}</div>
+
+            <div class="meta-label">Last change</div>
+            <div class="meta-value">${s.lastChangeDate || "N/A"}</div>
+
+            <div class="meta-label">Last program review</div>
+            <div class="meta-value">${s.lastProgramReview || "N/A"}</div>
+
+            <div class="meta-label">Last program test</div>
+            <div class="meta-value">${s.lastTestDate || "N/A"}</div>
+
+            <div class="meta-label">Next test due</div>
+            <div class="meta-value">${s.nextTestDue || "N/A"}</div>
+
+            <div class="meta-label">RSAW due</div>
+            <div class="meta-value">${s.rsawDueDate || "N/A"}</div>
+
+            <div class="meta-label">RSAW status</div>
+            <div class="meta-value">${s.rsawStatus || "N/A"}</div>
+          </div>
+
+          ${
+            s.notes
+              ? `<div class="meta-notes"><strong>Notes:</strong> ${s.notes}</div>`
+              : ""
+          }
+
+          ${
+            s.changeLogUrl
+              ? `<div class="meta-notes">
+                    🔗 <a href="${s.changeLogUrl}" target="_blank" rel="noopener noreferrer">
+                      View evidence / change log in GitHub
+                    </a>
+                 </div>`
+              : ""
+          }
+        </div>
+      </div>
+    `;
+  }
+
+  // ============================================================
+  // 6. WIRE UP SEARCH + INITIAL RENDER
+  // ============================================================
+  searchInput.addEventListener("input", () => {
+    renderStandardButtons();
+  });
+
+  // Initial render
+  buildRsawSummary();
+  renderStandardButtons();
+
+  // Optionally, auto-select the first standard
+  if (standards.length) {
+    activeStandardId = standards[0].id;
+    renderStandardButtons();
+    showStandardDetail(activeStandardId);
+  }
+
+  // ============================================================
+  // 7. OPTIONAL: LIVE JSON FROM YOUR TRACKER REPO
+  // ============================================================
+  // If your nerc-one-stop-shop-tracker repo writes out a JSON file
+  // (e.g., output/latest_changes.json) with updated dates, you can
+  // fetch it here and merge into the standards array.
+  //
+  // Example JSON shape:
+  // [
+  //   {
+  //     "id": "CIP-002-5.1a",
+  //     "lastChangeDate": "2025-02-10",
+  //     "lastTestDate": "2025-03-01",
+  //     "nextTestDue": "2026-03-01",
+  //     "rsawDueDate": "2026-02-01",
+  //     "rsawStatus": "Drafted"
+  //   }
+  // ]
+  //
+  // Uncomment and customize the URL if you want live data:
+  /*
+  fetch("https://raw.githubusercontent.com/MCPBPUNERC/nerc-one-stop-shop-tracker/main/output/latest_changes.json")
+    .then(resp => resp.json())
+    .then(changeData => {
+      changeData.forEach(change => {
+        const std = standards.find(s => s.id === change.id);
+        if (!std) return;
+        Object.assign(std, change); // merge incoming properties onto standard
+      });
+      buildRsawSummary();
+      renderStandardButtons();
+      if (activeStandardId) {
+        showStandardDetail(activeStandardId);
+      }
+    })
+    .catch(err => console.error("Error loading change data:", err));
+  */
+</script>
+</body>
+</html>
